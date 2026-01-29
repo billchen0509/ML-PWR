@@ -1,36 +1,5 @@
 # Metabolomic Biomarker Prediction in Postpartum Weight Retention (PWR) using Machine Learning Methods
 Author: Hongjin Chen
 # Abstract
-Postpartum weight retention (PWR) is a significant health concern for longterm maternal metabolic disease. However, predicting PWR remains a challenge, and the underlying
-metabolic mechanisms and biomarkers are not fully understood. We applied an integrative machine learning pipeline to predict PWR status across five time points using metabolomic profiles from both 1D and 2D NMR spectroscopy data combined with clinical metadata. Feature selection was performed to identify the most informative NMR
-features, and these features were then iteratively combined with metadata into a twolevel
-nested crossvalidation
-workflow to tune model hyperparameters and evaluate the performance
-of nine different machine learning models. Biological interpretation was conducted
-through pathway enrichment analysis and comparison of metabolite concentrations between
-PWR and NonPWR
-groups. The MultiLayer Perceptron (MLP), Random Forest
-(RF) and Logistic Regression (LR) models that combined metadata with featureselected
-2D NMR data (Meta + Selected 2D NMR) achieved higher crossvalidated
-ROC AUC
-than models using metadata alone, 1D NMR data or all 2D NMR features across visits.
-These results demonstrate the informativeness of 2D NMR compared to 1D NMR data
-and the practicability of feature selection using statistical analysis combined with machine
-learning models in future clinical implementation. Pathway enrichment analysis revealed
-valine, leucine, and isoleucine biosynthesis and degradation as the most enriched pathways,
-supporting a link between BranchedChain
-Amino Acids (BCAAs) metabolism and
-insulin resistance in PWR, potentially via the mTORC1/S6K1IRS1
-pathway. We also
-identified 42 metabolites potentially associated with PWR; among them, Betaine, 1,5Anhydrosorbitol,
-Acetoacetic acid, and 2Hydroxybutyric
-acid emerged as the most compelling
-biomarker candidates, plausibly reflecting metabolic recovery, glycemic control,
-and energy mobilization. This study suggests that machine learning approaches integrating
-metabolomic data from 2D NMR with clinical variables can effectively predict PWR.
-The results provide novel understandings into the dynamic metabolic changes during the
-postpartum period, and those metabolites identified as candidate biomarkers of PWR and
-the potential metabolic mechanisms of insulin resistance in PWR via mTORC/S6K1IRS1
-require further validation. This work illustrates how predictive machine learning models
-can uncover complex patterns in metabolomics studies and potentially provide targeted,
-personalized intervention for PWR.
+Postpartum weight retention (PWR) poses risks for long-term maternal metabolic disease, yet its underlying mechanisms and biomarkers remain unclear. We developed an integrative machine learning (ML) pipeline to predict PWR status across five time points using 1D/2D NMR spectroscopic data and clinical metadata. Feature selection and a two-layer nested cross-validation workflow were employed to optimize nine ML models. Models combining metadata with selected 2D NMR features outperformed those using 1D NMR or metadata alone, highlighting the superior informativeness of 2D NMR. Pathway enrichment analysis linked branched-chain amino acid (BCAA) metabolism to insulin resistance in PWR, potentially via mTORC1/S6K1-IRS1 pathway. Among 40 identified metabolites, Betaine, 1,5-Anhydrosorbitol, Acetoacetic acid, and 2-Hydroxybutyric acid emerged as key biomarkers reflecting metabolic recovery, glycemic control and energy mobilization. Our study demonstrates that integrating 2D NMR with ML effectively predicts PWR and uncovers complex metabolic dynamics. These findings provide novel mechanistic insights and candidate biomarkers for targeted, personalized interventions in postpartum health.
+
