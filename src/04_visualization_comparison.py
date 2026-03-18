@@ -308,7 +308,9 @@ def plot_model_delta(df, metrics="Average CV Accuracy"):
 
     visits = sorted(delta_long["Visit"].unique())
     delta_types = delta_long["Delta Type"].unique()
-    color_map = {dt: palette[i] for i, dt in enumerate(delta_types)}
+    color_map = {    "Meta + Selected 2D NMR - Meta + All 2D NMR": "#a6cee3",
+    "Meta + Selected 2D NMR - All 2D NMR Only": "#1f78b4",
+    "Meta + Selected 2D NMR - Meta Only": "#b2df8a"}
 
     n_visits = len(visits)
     fig, axes = plt.subplots(1, n_visits, figsize=(15, 8), sharey=True)
