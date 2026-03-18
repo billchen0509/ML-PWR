@@ -21,6 +21,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 import xgboost as xgb
+import os
 
 def select_top_nmr_features(X, y, other_cols, top_n):
     p_values = {}
@@ -53,13 +54,13 @@ def train_with_cv(df, cv=10, inner_cv=10, random_state=42, all_nmr_cols=None,top
 
     models = {
         'Logistic Regression': LogisticRegression(max_iter=5000, random_state=random_state),
-        #'GaussianNB': GaussianNB(),
-        #'BernoulliNB': BernoulliNB(),
-        #'Support Vector Machine': SVC(probability=True, random_state=random_state),
+        'GaussianNB': GaussianNB(),
+        'BernoulliNB': BernoulliNB(),
+        'Support Vector Machine': SVC(probability=True, random_state=random_state),
         'Random Forest': RandomForestClassifier(random_state=random_state),
-        #'K-Nearest Neighbors': KNeighborsClassifier(n_jobs=1),
-        #'XGBoost': xgb.XGBClassifier(eval_metric='logloss', random_state=random_state),
-        #'Decision Tree': DecisionTreeClassifier(random_state=random_state),
+        'K-Nearest Neighbors': KNeighborsClassifier(n_jobs=1),
+        'XGBoost': xgb.XGBClassifier(eval_metric='logloss', random_state=random_state),
+        'Decision Tree': DecisionTreeClassifier(random_state=random_state),
         'MultiLayer Perceptron': MLPClassifier(max_iter=1000, random_state=random_state),
     }
 
@@ -246,31 +247,66 @@ def run_nmr_feature_selection(df, n_start=5, n_end=20, **kwargs):
     return pd.concat(all_results, ignore_index=True), params_by_N
 
 if __name__ == "__main__":
-    for visit in range(1,6):
-        print(f"Processing visit {visit}")
-        df = pd.read_csv(f"/zhome/08/f/202291/result/data/meta+nmr/selection/DF{visit}_filtered.csv")
-        result_df, params_by_N = run_nmr_feature_selection(df,n_start=5, n_end=25, cv=10, inner_cv=10, random_state=42)
-        result_df.to_csv(f"/zhome/08/f/202291/result/data/meta+nmr/selection/v{visit}_result_selection_leak.csv", index=False)
-
-        joblib.dump(params_by_N, f"/zhome/08/f/202291/result/data/meta+nmr/selection/v{visit}_param_selection_leak.pkl")
-        features_df = result_df['Selected Features'].explode().apply(pd.Series)
-        features_df.to_csv(f"/zhome/08/f/202291/result/data/meta+nmr/selection/v{visit}_selected_features_leak.csv", index=False)
+    input_dir = "../test/result/data/meta+2dnmr"
+    output_dir = "../test/result/model/meta+selected2dnmr"
+    os.makedirs(output_dir, exist_ok=True)
 
     visit_dfs = []
     feature_dfs = []
     all_param_dicts = {}
-    for v in range(1, 6):
-        df = pd.read_csv(f"/zhome/08/f/202291/result/data/meta+nmr/selection/v{v}_result_selection_leak.csv")
-        df["Visit"] = f"V{v}"
-        visit_dfs.append(df)
-        feature_df = pd.read_csv(f"/zhome/08/f/202291/result/data/meta+nmr/selection/v{v}_selected_features_leak.csv")
-        feature_dfs.append(feature_df)
-        param_dict = joblib.load(f"/zhome/08/f/202291/result/data/meta+nmr/selection/v{v}_param_selection_leak.pkl")
-        all_param_dicts[v] = param_dict
+    for visit in range(1, 6):
+        print(f"Processing visit {visit}")
 
+        # input: DFx_filtered_2d.csv
+        df = pd.read_csv(f"{input_dir}/DF{visit}_filtered_2d.csv")
+
+        result_df, params_by_N = run_nmr_feature_selection(
+            df,
+            n_start=5,
+            n_end=25,
+            cv=10,
+            inner_cv=10,
+            random_state=42
+        )
+
+        # save per-visit model results
+        result_path = f"{output_dir}/v{visit}_result_meta+selected2dnmr.csv"
+        result_df.to_csv(result_path, index=False)
+
+        # save per-visit params
+        param_path = f"{output_dir}/v{visit}_param_meta+selected2dnmr.pkl"
+        joblib.dump(params_by_N, param_path)
+
+        # save per-visit selected features
+        features_df = result_df["Selected Features"].explode().apply(pd.Series)
+        features_path = f"{output_dir}/v{visit}_selected_features_meta+selected2dnmr.csv"
+        features_df.to_csv(features_path, index=False)
+
+        # collect for combined outputs
+        result_df["Visit"] = f"V{visit}"
+        visit_dfs.append(result_df)
+
+        features_df["Visit"] = f"V{visit}"
+        feature_dfs.append(features_df)
+
+        all_param_dicts[f"V{visit}"] = params_by_N
+
+    # save combined results
     all_visits_results = pd.concat(visit_dfs, ignore_index=True)
-    all_visits_results.to_csv("/zhome/08/f/202291/result/data/meta+nmr/selection/model_results_all_visits_selection_leak.csv", index=False)
+    all_visits_results.to_csv(
+        f"{output_dir}/model_results_all_visits_meta+selected2dnmr.csv",
+        index=False
+    )
+
     feature_dfs_combined = pd.concat(feature_dfs, ignore_index=True)
-    feature_dfs_combined.to_csv("/zhome/08/f/202291/result/data/meta+nmr/selection/model_results_all_visits_selected_features_leak.csv", index=False)
-    all_param_dicts_path = "/zhome/08/f/202291/result/data/meta+nmr/selection/all_param_selection_leak.pkl"
-    joblib.dump(all_param_dicts, all_param_dicts_path)
+    feature_dfs_combined.to_csv(
+        f"{output_dir}/model_results_all_visits_selected_features_meta+selected2dnmr.csv",
+        index=False
+    )
+
+    joblib.dump(
+        all_param_dicts,
+        f"{output_dir}/all_param_meta+selected2dnmr.pkl"
+    )
+
+    print("Done.")
