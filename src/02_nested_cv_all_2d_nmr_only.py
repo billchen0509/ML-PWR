@@ -15,10 +15,18 @@ import xgboost as xgb
 import pandas as pd
 import numpy as np
 import joblib
-
+import os
 def train_with_cv(df,cv=10,inner_cv = 10,random_state=42):
-    # Drop the target and identifier columns
-    X = df.drop(columns = ['pwr_current'])
+    one_hot_cols = ['vig_activity']
+    binary_cols = ['race_1', 'race_2']
+    continuous_cols = ['wt_gain', 'weight_change', 'age_delivery_range2', 'num_alc_weekly']
+    explicit_cols = ['caffeine', 'smoke_current', 'ppg_BMI', 'first_BMI']
+
+    meta_cols = one_hot_cols + binary_cols + continuous_cols + explicit_cols
+    non_feature_cols = ['participant_id', 'visit', 'pwr_current']
+    nmr_cols = [col for col in df.columns if col not in meta_cols + non_feature_cols]
+
+    X = df[nmr_cols]
     y = df['pwr_current']
 
     param_grid = {
@@ -203,28 +211,55 @@ def train_with_cv(df,cv=10,inner_cv = 10,random_state=42):
     return pd.DataFrame(all_results), all_results, best_models
 
 if __name__ == "__main__":
-    # Training and evaluating models for each visit
-    # Dictionary to save all visits' all_results 
+    input_dir = "../test/result/data/meta+2dnmr"
+    output_dir = "../test/result/model/all2dnmronly"
+    os.makedirs(output_dir, exist_ok=True)
+
     all_visit_raw_results = {}
     all_best_models = {}
-    for v in range(1,6): 
-        df = pd.read_csv(f"/zhome/08/f/202291/result/data/1d/1d_only/DF{v}_nmr_only_1d.csv")
-        print(f"Results for Visit V{v}:")
-        result, all_results, best_models = train_with_cv(df)
-        # Save the results to csv files
-        result.to_csv(f"/zhome/08/f/202291/result/data/1d/1d_only/model_results_v{v}_hyper_nmr_1d.csv", index=True)
-        joblib.dump(all_results,f"/zhome/08/f/202291/result/data/1d/1d_only/all_results_v{v}_nmr_1d.pkl")
+    combined_result_dfs = []
+
+    for v in range(1, 6):
+        input_file = f"{input_dir}/DF{v}_filtered_2d.csv"
+        print(f"Results for Visit V{v}: reading {input_file}")
+
+        df = pd.read_csv(input_file)
+        result_df, all_results, best_models = train_with_cv(df)
+
+        result_df["Visit"] = f"V{v}"
+        result_df.to_csv(
+            f"{output_dir}/model_results_v{v}_all2dnmronly.csv",
+            index=False
+        )
+
+        joblib.dump(
+            all_results,
+            f"{output_dir}/all_results_v{v}_all2dnmronly.pkl"
+        )
+
+        joblib.dump(
+            best_models,
+            f"{output_dir}/best_models_v{v}_all2dnmronly.pkl"
+        )
 
         all_visit_raw_results[f"V{v}"] = all_results
         all_best_models[f"V{v}"] = best_models
-    all_results = []
-    for visit in range(1,6):
-        df = pd.read_csv(f"/zhome/08/f/202291/result/data/1d/1d_only/model_results_v{v}_hyper_nmr_1d.csv")
-        df["Visit"] = f"V{v}"
-        all_results.append(df)
-    all_visits_results = pd.concat(all_results, ignore_index=True)
-    all_visits_results.to_csv("/zhome/08/f/202291/result/data/1d/1d_only/model_results_all_visits_nmr_1d_.csv", index=False)
-    # Save combined all_results
-    joblib.dump(all_visit_raw_results,"/zhome/08/f/202291/result/data/1d/1d_only/all_results_combined_nmr_1d.pkl")
-    joblib.dump(all_best_models,"/zhome/08/f/202291/result/data/1d/1d_only/all_best_models_nmr_1d.pkl")
-    print("\nTraining and evaluation complete for all files.")
+        combined_result_dfs.append(result_df)
+
+    combined_results = pd.concat(combined_result_dfs, ignore_index=True)
+    combined_results.to_csv(
+        f"{output_dir}/model_results_all_visits_all2dnmronly.csv",
+        index=False
+    )
+
+    joblib.dump(
+        all_visit_raw_results,
+        f"{output_dir}/all_results_combined_all2dnmronly.pkl"
+    )
+
+    joblib.dump(
+        all_best_models,
+        f"{output_dir}/all_best_models_all2dnmronly.pkl"
+    )
+
+    print("Training and evaluation complete for all files.")
