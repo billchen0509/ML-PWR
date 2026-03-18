@@ -175,7 +175,7 @@ def main():
             "suffix": "1d",
         },
         {
-            "nmr_csv": Path("../../mrbin_result/Result_final/mrbin_2025-05-29bins.csv"),
+            "nmr_csv": Path("../../mrbin_result/Result_final/updated/mrbin_final.csv"),
             "out_dir": Path("../test/result/data/meta+2dnmr"),
             "suffix": "2d",
         },
