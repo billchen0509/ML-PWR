@@ -1,0 +1,9 @@
+{
+  "model__activation": "relu",
+  "model__alpha": 0.0001,
+  "model__hidden_layer_sizes": [
+    150
+  ],
+  "model__learning_rate_init": 0.001,
+  "model__solver": "adam"
+}
