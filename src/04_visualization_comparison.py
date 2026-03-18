@@ -8,16 +8,16 @@ from matplotlib.container import BarContainer
 # 1. Load and combine data
 # =========================
 file_paths = {
-    "Meta + Selected 2D NMR": "../../result/data/meta+nmr/selection/model_results_all_visits_selection_leak.xlsx",
-    "Meta + All 2D NMR": "../../result/data/meta+nmr/model_results_all_visits_hyper_filtered.xlsx",
-    "Meta Only": "../../result/data/meta_only/model_results_all_visits_hyper_meta_filtered.xlsx",
-    "All 2D NMR Only": "../../result/data/nmr_only/model_results_all_visits_hyper_nmr.xlsx",
+    "Meta + Selected 2D NMR": "../test/result/model/meta+selected2dnmr/model_results_all_visits_meta+selected2dnmr.csv",
+    "Meta + All 2D NMR": "../test/result/model/meta+all2dnmr/model_results_all_visits_meta+all2dnmr.csv",
+    "Meta Only": "../test/result/model/metaonly/model_results_all_visits_metaonly.csv",
+    "All 2D NMR Only": "../test/result/model/all2dnmronly/model_results_all_visits_all2dnmronly.csv",
 }
 
 dataframes = []
 
 for source_name, path in file_paths.items():
-    df = pd.read_excel(path)
+    df = pd.read_csv(path)
     df["Source"] = source_name
     df["Model"] = df["Model"].str.strip()
     dataframes.append(df)
