@@ -8,10 +8,10 @@ from matplotlib.container import BarContainer
 # 1. Load and combine data
 # =========================
 file_paths = {
-    "Meta + Selected 2D NMR": "../result/data/meta+nmr/selection/model_results_all_visits_selection_leak.xlsx",
-    "Meta + All 2D NMR": "../result/data/meta+nmr/model_results_all_visits_hyper_filtered.xlsx",
-    "Meta Only": "../result/data/meta_only/model_results_all_visits_hyper_meta_filtered.xlsx",
-    "All 2D NMR Only": "../result/data/nmr_only/model_results_all_visits_hyper_nmr.xlsx",
+    "Meta + Selected 2D NMR": "../../result/data/meta+nmr/selection/model_results_all_visits_selection_leak.xlsx",
+    "Meta + All 2D NMR": "../../result/data/meta+nmr/model_results_all_visits_hyper_filtered.xlsx",
+    "Meta Only": "../../result/data/meta_only/model_results_all_visits_hyper_meta_filtered.xlsx",
+    "All 2D NMR Only": "../../result/data/nmr_only/model_results_all_visits_hyper_nmr.xlsx",
 }
 
 dataframes = []
@@ -144,7 +144,7 @@ def plot_model_per_visit(df, metric="Average CV Accuracy"):
             title_fontsize=11
         )
         plt.tight_layout()
-        # plt.savefig(f"../result/figure/model_performance_{metric.lower().replace(' ', '_')}_visit_{visit}.png", dpi=600, bbox_inches='tight')
+        plt.savefig(f"../test/result/figure/model_performance_{metric.lower().replace(' ', '_')}_visit_{visit}.png", dpi=600, bbox_inches='tight')
         plt.show()
 
 
@@ -262,7 +262,7 @@ def plot_model_comparison_per_model(df_all, metrics="Average CV Accuracy", error
     plt.suptitle(f"Model Comparison Across Visits: {metrics}", fontsize=18)
     plt.tight_layout(rect=[0, 0, 0.90, 0.96])
     plt.savefig(
-        f"../result/figure/model_comparison_{metrics.lower().replace(' ', '_')}.png",
+        f"../test/result/figure/model_comparison_{metrics.lower().replace(' ', '_')}.png",
         dpi=750,
         bbox_inches="tight"
     )
@@ -277,6 +277,7 @@ plot_model_comparison_per_model(df_all, metrics="Average CV ROC AUC", error="SE 
 # 4. Delta bar plot across visits
 # =========================================
 def plot_model_delta(df, metrics="Average CV Accuracy"):
+    palette = sns.color_palette("Set2")
     delta_df = df.pivot_table(
         index=["Visit", "Model"],
         columns="Source",
@@ -358,7 +359,7 @@ def plot_model_delta(df, metrics="Average CV Accuracy"):
         fontsize=14
     )
     plt.savefig(
-        f"../result/figure/model_delta_{metrics.lower().replace(' ', '_')}.png",
+        f"../test/result/figure/model_delta_{metrics.lower().replace(' ', '_')}.png",
         dpi=600,
         bbox_inches="tight"
     )
