@@ -17,6 +17,7 @@ import xgboost as xgb
 import pandas as pd
 import numpy as np
 import joblib
+import os
 
 def train_with_cv(df,cv=10,inner_cv =10,random_state=42):
     # list of columns to analyze
@@ -226,22 +227,60 @@ def train_with_cv(df,cv=10,inner_cv =10,random_state=42):
     return pd.DataFrame(all_results), all_results, best_models
 
 if __name__ == "__main__":
-    # Training and evaluating models for each visit
+    input_dir = "../test/result/data/meta+2dnmr"
+    output_dir = "../test/result/model/meta+all2dnmr"
+    os.makedirs(output_dir, exist_ok=True)
 
-    # Dictionary to save all visits' all_results 
+    # Dictionary to save all visits' all_results
     all_visit_raw_results = {}
     all_best_models = {}
-    for v in range(1,6): 
-        df = pd.read_csv(f"/zhome/08/f/202291/result/data/meta+nmr/DF{v}.csv")
-        print(f"Results for Visit V{v}:")
-        result, all_results, best_models = train_with_cv(df)
-        # Save the results to excel files
-        result.to_csv(f"/zhome/08/f/202291/result/data/meta+nmr/model_results_v{v}_hyper.csv", index=True)
-        joblib.dump(all_results,f"/zhome/08/f/202291/result/data/meta+nmr/all_results_v{v}.pkl")
+    combined_result_dfs = []
+
+    for v in range(1, 6):
+        input_file = f"{input_dir}/DF{v}_filtered_2d.csv"
+        print(f"Results for Visit V{v}: reading {input_file}")
+
+        df = pd.read_csv(input_file)
+        result_df, all_results, best_models = train_with_cv(df)
+
+        # save per-visit csv result
+        result_df["Visit"] = f"V{v}"
+        result_df.to_csv(
+            f"{output_dir}/model_results_v{v}_meta+all2dnmr.csv",
+            index=False
+        )
+
+        # save per-visit raw results
+        joblib.dump(
+            all_results,
+            f"{output_dir}/all_results_v{v}_meta+all2dnmr.pkl"
+        )
+
+        # save per-visit best models
+        joblib.dump(
+            best_models,
+            f"{output_dir}/best_models_v{v}_meta+all2dnmr.pkl"
+        )
 
         all_visit_raw_results[f"V{v}"] = all_results
         all_best_models[f"V{v}"] = best_models
-    # Save combined all_results
-    joblib.dump(all_visit_raw_results,"/zhome/08/f/202291/result/data/meta+nmr/all_results_combined.pkl")
-    joblib.dump(all_best_models,"/zhome/08/f/202291/result/data/meta+nmr/all_best_models.pkl")
+        combined_result_dfs.append(result_df)
+
+    # save combined csv
+    combined_results = pd.concat(combined_result_dfs, ignore_index=True)
+    combined_results.to_csv(
+        f"{output_dir}/model_results_all_visits_meta+all2dnmr.csv",
+        index=False
+    )
+
+    # save combined pkl
+    joblib.dump(
+        all_visit_raw_results,
+        f"{output_dir}/all_results_combined_meta+all2dnmr.pkl"
+    )
+    joblib.dump(
+        all_best_models,
+        f"{output_dir}/all_best_models_meta+all2dnmr.pkl"
+    )
+
     print("\nTraining and evaluation complete for all files.")
