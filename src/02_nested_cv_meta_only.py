@@ -17,6 +17,7 @@ import xgboost as xgb
 import pandas as pd
 import numpy as np
 import joblib
+import os
 
 def train_with_cv(df,cv=10,inner_cv = 10,random_state=42):
     # list of columns to analyze
@@ -28,18 +29,7 @@ def train_with_cv(df,cv=10,inner_cv = 10,random_state=42):
     # Drop the target and identifier columns
     X = df.drop(columns = ['pwr_current','participant_id','visit'])
     y = df['pwr_current']
-    # Get the explicit categories
-    explicit_categories = [sorted(set(X[col].dropna().unique())) for col in explicit_cols]
-    # Convert categorical columns to one-hot encoding
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ('cat', OneHotEncoder(drop = 'first',handle_unknown='ignore'), one_hot_cols),
-            ('explicit', OneHotEncoder(categories=explicit_categories, handle_unknown='ignore'), explicit_cols),
-            ('binary', 'passthrough', binary_cols),
-            ('num', StandardScaler(), continuous_cols)
-        ]
-    )
-
+    
     param_grid = {
         'Logistic Regression': [
         # Combinations for 'liblinear' solver
@@ -131,7 +121,17 @@ def train_with_cv(df,cv=10,inner_cv = 10,random_state=42):
             print(f"This is fold:{fold_idx + 1} for model:{model_name}")
             X_train, X_test_outer_fold = X.iloc[train_idx], X.iloc[test_idx]
             y_train, y_test_outer_fold = y.iloc[train_idx], y.iloc[test_idx]
-
+            # Get the explicit categories
+            explicit_categories = [sorted(set(X_train[col].dropna().unique())) for col in explicit_cols]
+            # Convert categorical columns to one-hot encoding
+            preprocessor = ColumnTransformer(
+                transformers=[
+            ('cat', OneHotEncoder(drop = 'first',handle_unknown='ignore'), one_hot_cols),
+            ('explicit', OneHotEncoder(categories=explicit_categories, handle_unknown='ignore'), explicit_cols),
+            ('binary', 'passthrough', binary_cols),
+            ('num', StandardScaler(), continuous_cols)
+                ]
+            )
             # Define the pipeline
             clf = Pipeline([
                 ('preprocessor', preprocessor),
@@ -223,20 +223,55 @@ def train_with_cv(df,cv=10,inner_cv = 10,random_state=42):
     return pd.DataFrame(all_results), all_results, best_models
 
 if __name__ == "__main__":
-    # Dictionary to save all visits' all_results 
+    input_dir = "../test/result/data/meta+1dnmr"
+    output_dir = "../test/result/model/metaonly"
+    os.makedirs(output_dir, exist_ok=True)
+
     all_visit_raw_results = {}
     all_best_models = {}
-    for v in range(1,6): 
-        df = pd.read_csv(f"../result/data/meta_only/DF{v}_meta_only.csv")
-        print(f"Results for Visit V{v}:")
-        result, all_results, best_models = train_with_cv(df)
-        # Save the results to excel files
-        result.to_csv(f"../result/data/meta_only/model_results_v{v}_hyper_meta.csv", index=True)
-        joblib.dump(all_results,f"../result/data/meta_only/all_results_v{v}_meta.pkl")
-    
+    combined_result_dfs = []
+
+    for v in range(1, 6):
+        input_file = f"{input_dir}/DF{v}_filtered_1d.csv"
+        print(f"Results for Visit V{v}: reading {input_file}")
+
+        df = pd.read_csv(input_file)
+        result_df, all_results, best_models = train_with_cv(df)
+
+        result_df["Visit"] = f"V{v}"
+        result_df.to_csv(
+            f"{output_dir}/model_results_v{v}_metaonly.csv",
+            index=False
+        )
+
+        joblib.dump(
+            all_results,
+            f"{output_dir}/all_results_v{v}_metaonly.pkl"
+        )
+
+        joblib.dump(
+            best_models,
+            f"{output_dir}/best_models_v{v}_metaonly.pkl"
+        )
+
         all_visit_raw_results[f"V{v}"] = all_results
         all_best_models[f"V{v}"] = best_models
-    #Save combined all_results
-    joblib.dump(all_visit_raw_results,"../result/data/meta_only/all_results_combined_meta.pkl")
-    joblib.dump(all_best_models,"../result/data/meta_only/all_best_models_meta.pkl")
-    print("\nTraining and evaluation complete for all files.")  
+        combined_result_dfs.append(result_df)
+
+    combined_results = pd.concat(combined_result_dfs, ignore_index=True)
+    combined_results.to_csv(
+        f"{output_dir}/model_results_all_visits_metaonly.csv",
+        index=False
+    )
+
+    joblib.dump(
+        all_visit_raw_results,
+        f"{output_dir}/all_results_combined_metaonly.pkl"
+    )
+
+    joblib.dump(
+        all_best_models,
+        f"{output_dir}/all_best_models_metaonly.pkl"
+    )
+
+    print("Training and evaluation complete for all files.")
