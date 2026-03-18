@@ -1,4 +1,3 @@
-
 from scipy.stats import ttest_ind
 import warnings
 warnings.filterwarnings("ignore")
@@ -21,6 +20,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neural_network import MLPClassifier
 import xgboost as xgb
+import os
 
 def select_top_nmr_features(X, y, other_cols, top_n):
     p_values = {}
@@ -244,31 +244,65 @@ def run_nmr_feature_selection(df, n_start=5, n_end=20, **kwargs):
     return pd.concat(all_results, ignore_index=True), model_fold_params
 
 if __name__ == "__main__":
-    for visit in range(1,6):
-        print(f"Processing visit {visit}")
-        df = pd.read_csv(f"/zhome/08/f/202291/result/data/1d/DF{visit}_filtered_1d.csv")
-        result_df, param_dict = run_nmr_feature_selection(df,n_start=5, n_end=25, cv=10, inner_cv=10, random_state=42)
-        result_df.to_csv(f"/zhome/08/f/202291/result/data/1d/v{visit}_result_selection_1d_leak.csv", index=False)
-
-        joblib.dump(param_dict, f"/zhome/08/f/202291/result/data/1d/v{visit}_param_selection_1d_leak.pkl")
-        features_df = result_df['Selected Features'].explode().apply(pd.Series)
-        features_df.to_csv(f"/zhome/08/f/202291/result/data/1d/v{visit}_selected_features_1d_leak.csv", index=False)
+    input_dir = "../test/result/data/meta+1dnmr"
+    output_dir = "../test/result/model/meta+selected1dnmr"
+    os.makedirs(output_dir, exist_ok=True)
 
     visit_dfs = []
     feature_dfs = []
     all_param_dicts = {}
-    for v in range(1, 6):
-        df = pd.read_csv(f"/zhome/08/f/202291/result/data/1d/v{v}_result_selection_1d_leak.csv")
-        df["Visit"] = f"V{v}"
-        visit_dfs.append(df)
-        feature_df = pd.read_csv(f"/zhome/08/f/202291/result/data/1d/v{v}_selected_features_1d_leak.csv")
-        feature_dfs.append(feature_df)
-        param_dict = joblib.load(f"/zhome/08/f/202291/result/data/1d/v{v}_param_selection_1d_leak.pkl")
-        all_param_dicts[v] = param_dict
 
+    for visit in range(1, 6):
+        print(f"Processing visit {visit}")
+
+        # Input: DFx_filtered_1d.csv
+        df = pd.read_csv(f"{input_dir}/DF{visit}_filtered_1d.csv")
+
+        result_df, param_dict = run_nmr_feature_selection(
+            df,
+            n_start=5,
+            n_end=25,
+            cv=10,
+            inner_cv=10,
+            random_state=42
+        )
+
+        # Save per-visit results
+        result_path = f"{output_dir}/v{visit}_result_meta+selected1dnmr.csv"
+        result_df.to_csv(result_path, index=False)
+
+        # Save per-visit parameters
+        param_path = f"{output_dir}/v{visit}_param_meta+selected1dnmr.pkl"
+        joblib.dump(param_dict, param_path)
+
+        # Save selected features
+        features_df = result_df["Selected Features"].explode().apply(pd.Series)
+        features_df["Visit"] = f"V{visit}"
+        features_path = f"{output_dir}/v{visit}_selected_features_meta+selected1dnmr.csv"
+        features_df.to_csv(features_path, index=False)
+
+        # Collect results
+        result_df["Visit"] = f"V{visit}"
+        visit_dfs.append(result_df)
+        feature_dfs.append(features_df)
+        all_param_dicts[f"V{visit}"] = param_dict
+
+    # Combine all visits
     all_visits_results = pd.concat(visit_dfs, ignore_index=True)
-    all_visits_results.to_csv("/zhome/08/f/202291/result/data/1d/model_results_all_visits_selection_1d_leak.csv", index=False)
+    all_visits_results.to_csv(
+        f"{output_dir}/model_results_all_visits_meta+selected1dnmr.csv",
+        index=False
+    )
+
     feature_dfs_combined = pd.concat(feature_dfs, ignore_index=True)
-    feature_dfs_combined.to_csv("/zhome/08/f/202291/result/data/1d/model_results_all_visits_selected_features_1d_leak.csv", index=False)
-    all_param_dicts_path = "/zhome/08/f/202291/result/data/1d/all_param_selection_1d_leak.pkl"
-    joblib.dump(all_param_dicts, all_param_dicts_path)
+    feature_dfs_combined.to_csv(
+        f"{output_dir}/model_results_all_visits_selected_features_meta+selected1dnmr.csv",
+        index=False
+    )
+
+    joblib.dump(
+        all_param_dicts,
+        f"{output_dir}/all_param_meta+selected1dnmr.pkl"
+    )
+
+    print("Done.")
