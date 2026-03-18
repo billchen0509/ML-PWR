@@ -143,7 +143,7 @@ def train_with_cv(df,cv=10,inner_cv = 10,random_state=42):
                     clf,
                     param_grid=param_grid[model_name],
                     cv=StratifiedKFold(n_splits=inner_cv, shuffle=True, random_state=random_state),
-                    scoring='f1',
+                    scoring='roc_auc',
                     n_jobs=4,
                 )
                 grid.fit(X_train, y_train)
