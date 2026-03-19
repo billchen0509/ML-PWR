@@ -113,10 +113,39 @@ Run nested cross-validation under multiple input configurations:
 ### Group comparison
 - `src/07_boxplot_comparison.py`  
   Generates metabolite boxplots for PWR vs Non-PWR across visits.
+## Usage
 
+Example workflow:
+
+```bash
+python src/01_process_data_merged.py
+
+python src/02_nested_cv_meta_only.py
+python src/02_nested_cv_all_2d_nmr_only.py
+python src/02_nested_cv_meta_2d_nmr.py
+python src/02_nested_cv_1d_feature_selection.py
+python src/02_nested_cv_2d_feature_selection.py
+
+python src/03_summary_results.py
+
+python src/04_visualization_2dvs1d.py
+python src/04_visualization_comparison.py
+python src/04_visualization_metaselected2dnmr.py
+
+python src/05_meta_association.py
+
+python src/06_deployment.py
+python src/06_deployment_summary.py
+
+python src/07_boxplot_comparison.py
+```
 ## Data Availability
 
 Due to privacy restrictions, participant-level data in `test/result/data/` are not publicly uploaded to this repository. Data may be available from the authors upon reasonable request and subject to applicable data-sharing and ethics restrictions.
+
+## Citation
+
+If you use this repository, please cite the associated manuscript when available.
 
 ## Outputs
 
