@@ -37,5 +37,91 @@ project/
 │       └── figure/              # generated figures
 └── README.md
  
+## Analysis Pipeline
 
+The overall workflow of the repository is:
+
+### 1. Data processing
+- Load metadata
+- Construct visit-specific merged datasets
+- Merge metadata with 1D and 2D NMR features
+- Save processed analysis files
+
+### 2. Model training
+Run nested cross-validation under multiple input configurations:
+- Meta Only
+- All 2D NMR Only
+- Meta + All 2D NMR
+- Meta + Selected 1D NMR
+- Meta + Selected 2D NMR
+
+### 3. Feature selection
+- Rank NMR variables within training folds only
+- Evaluate different top-N selected feature sets for 1D and 2D models
+
+### 4. Result summarization
+- Combine model outputs across configurations
+- Identify best-performing models by visit
+
+### 5. Visualization
+- Compare model performance across visits and feature configurations
+- Generate metabolite comparison boxplots
+- Produce selected model performance figures
+
+### 6. Metadata association
+- Test metadata variables associated with PWR
+- Apply multiple-comparison correction
+
+### 7. Deployment
+- Refit selected final models
+- Save prediction outputs and deployment summaries
+
+## Scripts
+
+### Data processing
+- `src/01_process_data_merged.py`: Builds visit-specific merged datasets from metadata and NMR inputs.
+
+### Model training
+- `src/02_nested_cv_meta_only.py`: Nested cross-validation using metadata only.
+- `src/02_nested_cv_all_2d_nmr_only.py`: Nested cross-validation using all 2D NMR features only.
+- `src/02_nested_cv_meta_2d_nmr.py`: Nested cross-validation using metadata + all 2D NMR features.
+- `src/02_nested_cv_1d_feature_selection.py`: Nested cross-validation using metadata + selected 1D NMR features.
+- `src/02_nested_cv_2d_feature_selection.py`: Nested cross-validation using metadata + selected 2D NMR features.
+
+### Result summarization
+- `src/03_summary_results.py`  
+  Aggregates results and selects best models by visit.
+
+### Visualization
+- `src/04_visualization_2dvs1d.py`  
+  Compares selected 1D and 2D models.
+- `src/04_visualization_comparison.py`  
+  Compares configurations across visits.
+- `src/04_visualization_metaselected2dnmr.py`  
+  Generates detailed plots for Meta + Selected 2D NMR.
+
+### Metadata association
+- `src/05_meta_association.py`  
+  Tests metadata variables associated with PWR.
+
+### Deployment
+- `src/06_deployment.py`  
+  Refits final selected models and exports deployment outputs.
+- `src/06_deployment_summary.py`  
+  Summarizes deployment predictions across visits.
+
+### Group comparison
+- `src/07_boxplot_comparison.py`  
+  Generates metabolite boxplots for PWR vs Non-PWR across visits.
+
+## Data Availability
+
+Due to privacy restrictions, participant-level data in `test/result/data/` are not publicly uploaded to this repository. Data may be available from the authors upon reasonable request and subject to applicable data-sharing and ethics restrictions.
+
+## Outputs
+
+The repository produces outputs under `test/result/`, including:
+- processed datasets
+- deployment results
+- generated figures
 
