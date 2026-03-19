@@ -13,6 +13,7 @@ This project investigates whether metadata and NMR-based metabolomic features ca
 - 2D NMR features
 
 ### Repository Structure
+```text
 project/
 ├── src/                         # analysis scripts
 │   ├── 01_process_data_merged.py
@@ -35,7 +36,7 @@ project/
 │       ├── deploy/              # deployment-ready models and prediction outputs
 │       └── figure/              # generated figures
 └── README.md
- 
+```
 ## Analysis Pipeline
 
 The overall workflow of the repository is:
