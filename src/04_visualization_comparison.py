@@ -8,10 +8,11 @@ from matplotlib.container import BarContainer
 # 1. Load and combine data
 # =========================
 file_paths = {
-    "Meta + Selected 2D NMR": "../test/result/model/meta+selected2dnmr/model_results_all_visits_meta+selected2dnmr.csv",
-    "Meta + All 2D NMR": "../test/result/model/meta+all2dnmr/model_results_all_visits_meta+all2dnmr.csv",
-    "Meta Only": "../test/result/model/metaonly/model_results_all_visits_metaonly.csv",
-    "All 2D NMR Only": "../test/result/model/all2dnmronly/model_results_all_visits_all2dnmronly.csv",
+    "Meta + Selected 2D NMR": "../test/result/data/meta+2dnmr/model_results_all_visits_selected_features_meta+selected2dnmr.csv",
+    "Meta + Selected 1D NMR": "../test/result/data/meta+1dnmr/model_results_all_visits_selected_features_meta+selected1dnmr.csv",
+    "Meta + All 2D NMR": "../test/result/data/meta+all2dnmr/model_results_all_visits_selected_features_meta+all2dnmr.csv",
+    "All 2D NMR Only": "../test/result/data/all2dnmronly/model_results_all_visits_selected_features_all2dnmronly.csv",
+    "Meta Only": "../test/result/data/metaonly/model_results_all_visits_selected_features_metaonly.csv",
 }
 
 dataframes = []
@@ -23,6 +24,16 @@ for source_name, path in file_paths.items():
     dataframes.append(df)
 
 df_all = pd.concat(dataframes, ignore_index=True)
+
+visit_label_map = {
+    "V1": "Third trimester",
+    "V2": "4-6 weeks\npostpartum",
+    "V3": "4 months\npostpartum",
+    "V4": "8 months\npostpartum",
+    "V5": "12 months\npostpartum"
+}
+
+visit_order = ["V1", "V2", "V3", "V4", "V5"]
 
 # Standardize Selected 2D metric column names
 df_all.loc[
@@ -84,8 +95,8 @@ def plot_model_per_visit(df, metric="Average CV Accuracy"):
             errorbar=None,
             dodge=True,
         )
-
-        ax.set_title(f"Model Performance {metric} - Visit {visit}", fontsize=12, pad=10)
+        visit_label = visit_label_map.get(visit, visit)
+        ax.set_title(f"Model Performance {metric} - {visit_label}", fontsize=12, pad=10)
         ax.set_xlabel("Model", fontsize=10)
         ax.set_ylabel(metric, fontsize=12)
         ax.set_ylim(0, 1.05)
@@ -144,7 +155,7 @@ def plot_model_per_visit(df, metric="Average CV Accuracy"):
             title_fontsize=11
         )
         plt.tight_layout()
-        plt.savefig(f"../test/result/figure/model_performance_{metric.lower().replace(' ', '_')}_visit_{visit}.png", dpi=600, bbox_inches='tight')
+        plt.savefig(f"../test/result/figure/model_performance_{metric.lower().replace(' ', '_')}_visit_{visit_label}.png", dpi=600, bbox_inches='tight')
         plt.show()
 
 
@@ -160,7 +171,7 @@ def plot_model_comparison_per_model(df_all, metrics="Average CV Accuracy", error
     df_all["Model"] = df_all["Model"].str.strip()
 
     models = sorted(df_all["Model"].unique())
-    visits = sorted(df_all["Visit"].unique())
+    visits = [v for v in visit_order if v in df_all["Visit"].dropna().unique()]
     metrics = metrics.strip()
     error = error.strip() if error else None
     palette = sns.color_palette("Set2")
@@ -209,7 +220,7 @@ def plot_model_comparison_per_model(df_all, metrics="Average CV Accuracy", error
             ax.set_xlabel("")
 
         ax.set_xticks(range(len(visits)))
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=0)
+        ax.set_xticklabels([visit_label_map.get(v, v) for v in visits], rotation=30, ha = 'right', fontsize=9)
 
         # Add error bars using direct data mapping
         data_sorted = data.sort_values(["Visit", "Source"]).reset_index(drop=True)
@@ -306,7 +317,7 @@ def plot_model_delta(df, metrics="Average CV Accuracy"):
         value_name="Delta"
     )
 
-    visits = sorted(delta_long["Visit"].unique())
+    visits = [v for v in visit_order if v in delta_long["Visit"].dropna().unique()]
     delta_types = delta_long["Delta Type"].unique()
     color_map = {    "Meta + Selected 2D NMR - Meta + All 2D NMR": "#a6cee3",
     "Meta + Selected 2D NMR - All 2D NMR Only": "#1f78b4",
@@ -330,7 +341,7 @@ def plot_model_delta(df, metrics="Average CV Accuracy"):
             ax=ax
         )
 
-        ax.set_title(f"Visit {visit}")
+        ax.set_title(f"{visit_label_map.get(visit, visit)}", fontsize=12, pad=10)
         ax.set_xlabel("Model")
         ax.set_xticklabels(ax.get_xticklabels(), rotation=45, ha="right")
         ax.set_ylabel("Performance Gain" if i == 0 else "")

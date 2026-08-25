@@ -3,8 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ---------- 1. Load the files ----------
-df_2d = pd.read_excel("../test/result/data/meta+2dnmr/model_results_all_visits_selection_leak.xlsx")
-df_1d = pd.read_csv("../test/result/data/meta+1dnmr/model_results_all_visits_selection_1d_leak.csv")
+df_2d = pd.read_csv("../test/result/data/meta+2dnmr/model_results_all_visits_selected_features_meta+selected2dnmr.csv")
+df_1d = pd.read_csv("../test/result/data/meta+1dnmr/model_results_all_visits_selected_features_meta+selected1dnmr.csv")
 visit_label_map = {
     "V1": "Third trimester",
     "V2": "4-6 weeks\npostpartum",
