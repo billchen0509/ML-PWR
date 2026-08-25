@@ -14,11 +14,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 
-
-
-# =========================
 # Constants
-# =========================
 ONE_HOT_COLS = ['vig_activity']
 BINARY_COLS = ['race_1', 'race_2']
 CONTINUOUS_COLS = ['wt_gain', 'weight_change', 'age_delivery_range2', 'num_alc_weekly']
@@ -45,10 +41,6 @@ PREDICTION_PLAN = {
     5: ("Logistic Regression", 8),
 }
 
-
-# =========================
-# Custom selector
-# =========================
 class NMRTopNSelector(BaseEstimator, TransformerMixin):
     def __init__(self, top_n=10):
         self.top_n = top_n
@@ -73,10 +65,7 @@ class NMRTopNSelector(BaseEstimator, TransformerMixin):
     def transform(self, X):
         return X[self.selected_cols_]
 
-
-# =========================
-# Training utilities
-# =========================
+# Training
 def final_tune_and_refit(df, model_name, estimator, param_grid, top_n, outdir,
                          cv=10, random_state=42):
     X = df.drop(columns=['pwr_current', 'participant_id', 'visit'])
@@ -215,10 +204,7 @@ def run_training():
             print("Selected NMR:", info["selected_nmr"][:5], "…")
             print("Saved model →", info["final_model_path"])
 
-
-# =========================
 # Prediction utilities
-# =========================
 def load_final_pipeline(base_dir, visit, model_name, top_n):
     path = os.path.join(base_dir, f"V{visit}", f"{model_name}_N{top_n}_final_model.pkl")
     pipe = joblib.load(path)
@@ -263,10 +249,6 @@ def run_prediction():
         )
         out_df.to_csv(out_path, index=False)
 
-
-# =========================
-# Main
-# =========================
 if __name__ == "__main__":
     run_training()
     run_prediction()
