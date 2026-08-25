@@ -1,4 +1,4 @@
-# Line plots of 2D metabolites using the strongest signal per metabolite
+# Line plots of 1D metabolites using the strongest signal per metabolite
 # with Welch t-tests comparing PWR and Non-PWR at each visit
 
 import pandas as pd
@@ -12,14 +12,14 @@ from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
 
 
-# ---------- 1. Load files ----------
+# ---------- 1. File paths and visit information ----------
 
 files = [
-    "../../result/data/nmr_only/DF1_nmr_only_annotated_2d.csv",
-    "../../result/data/nmr_only/DF2_nmr_only_annotated_2d.csv",
-    "../../result/data/nmr_only/DF3_nmr_only_annotated_2d.csv",
-    "../../result/data/nmr_only/DF4_nmr_only_annotated_2d.csv",
-    "../../result/data/nmr_only/DF5_nmr_only_annotated_2d.csv"
+    "../../result/1D_data/nmr_only/DF1_nmr_only_annotated_1d.csv",
+    "../../result/1D_data/nmr_only/DF2_nmr_only_annotated_1d.csv",
+    "../../result/1D_data/nmr_only/DF3_nmr_only_annotated_1d.csv",
+    "../../result/1D_data/nmr_only/DF4_nmr_only_annotated_1d.csv",
+    "../../result/1D_data/nmr_only/DF5_nmr_only_annotated_1d.csv"
 ]
 
 visit_order = ["V1", "V2", "V3", "V4", "V5"]
@@ -32,6 +32,14 @@ visit_label_map = {
     "V5": "12 months\npostpartum"
 }
 
+short_visit_labels = {
+    "V1": "Third tri",
+    "V2": "4-6 wk",
+    "V3": "4 mo",
+    "V4": "8 mo",
+    "V5": "12 mo"
+}
+
 # Approximate timing in months relative to delivery
 visit_time_months = {
     "V1": -2.0,
@@ -41,21 +49,13 @@ visit_time_months = {
     "V5": 12.0
 }
 
-short_visit_labels = {
-    "V1": "Third tri",
-    "V2": "4-6 wk",
-    "V3": "4 mo",
-    "V4": "8 mo",
-    "V5": "12 mo"
-}
-
 
 # Output directory
-output_dir = Path("../test/result/figure")
+output_dir = Path("../result/figure")
 output_dir.mkdir(parents=True, exist_ok=True)
 
 
-# ---------- 2. Load five visits ----------
+# ---------- 2. Load files ----------
 
 dfs = []
 
@@ -72,45 +72,45 @@ for visit, file_path in zip(visit_order, files):
     dfs.append(df)
 
 
-# ---------- 3. Define metabolites ----------
+# ---------- 3. Define 1D metabolites ----------
 
-target_2d_only = {
-    "Alanine",
-    "Arabitol",
-    "Creatine",
-    "Cysteine",
-    "Deoxyguanosine",
-    "Glucose",
-    "Glutamic acid",
-    "Glutathione",
-    "Glycerophosphocholine",
-    "Glycine",
-    "Guanosine diphosphate",
-    "Isoleucine",
-    "Lactic acid",
-    "Leucine",
-    "Lysine",
-    "Maltose",
-    "Ornithine",
-    "Pinitol",
-    "Proline",
-    "Sulforaphane",
-    "Syringic acid",
-    "Triethylene Glycol",
-    "Valine",
-    "Xylitol",
-    "Xylose",
-    "o-Cresol"
+target_1d_only = {
+    "1,1-Dimethylbiguanide",
+    "1,5-Anhydrosorbitol",
+    "2-Aminoisobutyric acid",
+    "2-Chlorobenzoic acid",
+    "3-Hydroxybenzoic acid",
+    "4-Hydroxyproline",
+    "Acetic acid",
+    "Acetone",
+    "Citric acid",
+    "Creatinine",
+    "Dimethylsulfide",
+    "Galactose",
+    "Glycolic acid",
+    "Homocysteic acid",
+    "Isovalerylglycine",
+    "Mannose",
+    "Methanol",
+    "Paracetamol sulfate",
+    "Pipecolic acid",
+    "Putrescine",
+    "Pyruvic acid",
+    "Urea",
+    "Uridine",
+    "Xanthurenic acid",
+    "Xylobiose",
+    "alpha-Ketoisovaleric acid"
 }
 
 
 def clean_metabolite_name(column_name):
     """
-    Remove suffixes such as .1, .2, etc. that pandas may add
+    Remove suffixes such as .1, .2, etc. added by pandas
     to duplicated metabolite column names.
 
     Example:
-    Glucose.1 -> Glucose
+    Acetic acid.1 -> Acetic acid
     """
 
     return re.sub(r"\.\d+$", "", column_name)
@@ -118,7 +118,8 @@ def clean_metabolite_name(column_name):
 
 def get_metabolite_cols(df, metabolite):
     """
-    Return all columns corresponding to the same annotated metabolite.
+    Return all signal columns corresponding to one
+    annotated metabolite.
     """
 
     return [
@@ -131,14 +132,14 @@ def get_metabolite_cols(df, metabolite):
 # ---------- 4. Select the strongest signal for each metabolite ----------
 
 # For each metabolite signal, calculate its mean intensity at each visit.
-# Then calculate its average mean intensity across visits.
-# The signal with the highest average intensity is retained.
+# Then calculate the average of these visit-specific means.
+# Retain the signal with the highest average intensity across visits.
 
 signal_records = []
 
 for visit, df in zip(visit_order, dfs):
 
-    for metabolite in target_2d_only:
+    for metabolite in target_1d_only:
 
         metabolite_columns = get_metabolite_cols(
             df,
@@ -165,7 +166,7 @@ signal_mean_df = pd.DataFrame(signal_records)
 if signal_mean_df.empty:
 
     raise ValueError(
-        "No matching 2D metabolite columns were found. "
+        "No matching 1D metabolite columns were found. "
         "Check the metabolite names and input files."
     )
 
@@ -192,8 +193,6 @@ selected_signal_df = (
     })
 )
 
-
-
 selected_signal_map = dict(
     zip(
         selected_signal_df["metabolite"],
@@ -208,7 +207,7 @@ plot_data = []
 
 for visit, df in zip(visit_order, dfs):
 
-    for metabolite in target_2d_only:
+    for metabolite in target_1d_only:
 
         selected_column = selected_signal_map.get(
             metabolite
@@ -244,7 +243,6 @@ for visit, df in zip(visit_order, dfs):
         if not temp.empty:
             plot_data.append(temp)
 
-
 plot_df = pd.concat(
     plot_data,
     ignore_index=True
@@ -258,11 +256,13 @@ plot_df["visit"] = pd.Categorical(
 )
 
 
-plot_df = plot_df.sort_values(
-    ["metabolite", "visit", "Groups"]
-).reset_index(drop=True)
-
-
+plot_df = (
+    plot_df
+    .sort_values(
+        ["metabolite", "visit", "Groups"]
+    )
+    .reset_index(drop=True)
+)
 
 
 # ---------- 6. Welch t-test at each metabolite and visit ----------
@@ -315,6 +315,7 @@ for (
         else np.nan
     )
 
+
     test_records.append({
         "metabolite": metabolite,
         "visit": visit,
@@ -340,9 +341,13 @@ test_results_df["visit"] = pd.Categorical(
 )
 
 
-test_results_df = test_results_df.sort_values(
-    ["metabolite", "visit"]
-).reset_index(drop=True)
+test_results_df = (
+    test_results_df
+    .sort_values(
+        ["metabolite", "visit"]
+    )
+    .reset_index(drop=True)
+)
 
 
 # ---------- 7. Benjamini-Hochberg FDR correction ----------
@@ -378,10 +383,11 @@ test_results_df["significant_fdr"] = (
 
 
 
-# ---------- 8. Select significance criterion for the figure ----------
+# ---------- 8. Select significance criterion ----------
 
 # Use raw p-values
 p_column_for_plot = "p_value"
+
 # p_column_for_plot = "p_fdr"
 
 significance_threshold = 0.05
@@ -422,9 +428,14 @@ summary_df["visit"] = pd.Categorical(
 )
 
 
-summary_df = summary_df.sort_values(
-    ["metabolite", "visit", "Groups"]
-).reset_index(drop=True)
+summary_df = (
+    summary_df
+    .sort_values(
+        ["metabolite", "visit", "Groups"]
+    )
+    .reset_index(drop=True)
+)
+
 
 # ---------- 10. Create line plots ----------
 
@@ -437,6 +448,7 @@ nrows = math.ceil(
     len(metabolites) / ncols
 )
 
+
 fig, axes = plt.subplots(
     nrows=nrows,
     ncols=ncols,
@@ -444,14 +456,17 @@ fig, axes = plt.subplots(
     sharex=True
 )
 
+
 axes = np.atleast_1d(
     axes
 ).flatten()
+
 
 colors = {
     "Non-PWR": "#4C72B0",
     "PWR": "#C44E52"
 }
+
 
 for ax, metabolite in zip(
     axes,
@@ -462,7 +477,8 @@ for ax, metabolite in zip(
         summary_df["metabolite"] == metabolite
     ].copy()
 
-    # Plot the two groups
+
+    # Plot mean ± SE for each group
     for group in ["Non-PWR", "PWR"]:
 
         sub_group = (
@@ -475,8 +491,6 @@ for ax, metabolite in zip(
         if sub_group.empty:
             continue
 
-        # Use zero-length error bars when SE is unavailable,
-        # for example when n = 1.
         plotting_se = (
             sub_group["se_value"]
             .fillna(0)
@@ -510,6 +524,8 @@ for ax, metabolite in zip(
         )
     ].copy()
 
+
+    # Calculate error bars
     se_for_position = (
         sub_metabolite["se_value"]
         .fillna(0)
@@ -541,6 +557,7 @@ for ax, metabolite in zip(
         if visit_summary.empty:
             continue
 
+        # Highest error-bar position across the two groups
         visit_upper = (
             visit_summary["mean_value"] +
             visit_summary["se_value"].fillna(0)
@@ -563,6 +580,7 @@ for ax, metabolite in zip(
         )
 
         star_positions.append(star_y)
+
 
     if star_positions:
 
@@ -609,7 +627,7 @@ for ax, metabolite in zip(
     )
 
 
-# Remove unused subplot panels
+# Remove unused subplots
 for ax in axes[len(metabolites):]:
     fig.delaxes(ax)
 
@@ -656,7 +674,7 @@ if legend_handles:
 
 
 fig.suptitle(
-    "PWR vs Non-PWR Across Visits for 2D NMR Metabolites",
+    "PWR vs Non-PWR Across Visits for 1D NMR Metabolites",
     fontsize=14,
     y=0.98
 )
@@ -671,9 +689,8 @@ plt.tight_layout(
 
 figure_path = (
     output_dir /
-    "lineplots_metabolites_2d_highest_intensity_signal_with_significance.png"
+    "lineplots_metabolites_1d_highest_intensity_signal_with_significance.png"
 )
-
 
 plt.savefig(
     figure_path,
