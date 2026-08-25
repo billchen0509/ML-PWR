@@ -3,8 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ---------- 1. Load the files ----------
-df_2d = pd.read_csv("../test/result/model/meta+selected2dnmr/model_results_all_visits_meta+selected2dnmr.csv")
-df_1d = pd.read_csv("../test/result/model/meta+selected1dnmr/model_results_all_visits_meta+selected1dnmr.csv")
+df_2d = pd.read_excel("../test/result/data/meta+2dnmr/model_results_all_visits_selection_leak.xlsx")
+df_1d = pd.read_csv("../test/result/data/meta+1dnmr/model_results_all_visits_selection_1d_leak.csv")
+visit_label_map = {
+    "V1": "Third trimester",
+    "V2": "4-6 weeks\npostpartum",
+    "V3": "4 months\npostpartum",
+    "V4": "8 months\npostpartum",
+    "V5": "12 months\npostpartum"
+}
+
+visit_order = ["V1", "V2", "V3", "V4", "V5"]
 
 # ---------- 2. Get the best CV ROC AUC for each Visit-Model ----------
 def pick_best(df, data_type):
@@ -51,7 +60,7 @@ for idx, visit in enumerate(visit_order):
                             ecolor='black', capsize=4, lw=1)
             ax.text(xpos, auc + 0.02, f"{auc:.2f}", 
                     ha='center', va='bottom', fontsize=6)
-    ax.set_title(f"Visit {visit}")
+    ax.set_title(visit_label_map[visit])
     ax.set_xticks(np.arange(len(model_order)))
     ax.set_xticklabels(model_order, rotation=45, ha="right", fontsize=8)
     ax.set_ylim(0, 1.05)
