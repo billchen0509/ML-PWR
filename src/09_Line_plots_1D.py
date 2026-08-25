@@ -50,12 +50,12 @@ visit_time_months = {
 }
 
 
-# Output directory
-output_dir = Path("../result/figure")
+# Create output directory
+output_dir = Path("../test/result/figure")
 output_dir.mkdir(parents=True, exist_ok=True)
 
 
-# ---------- 2. Load files ----------
+# ---------- 2. Load five visits ----------
 
 dfs = []
 
@@ -243,6 +243,15 @@ for visit, df in zip(visit_order, dfs):
         if not temp.empty:
             plot_data.append(temp)
 
+
+if not plot_data:
+
+    raise ValueError(
+        "No valid plotting data were created. "
+        "Check pwr_current and the selected metabolite columns."
+    )
+
+
 plot_df = pd.concat(
     plot_data,
     ignore_index=True
@@ -315,13 +324,25 @@ for (
         else np.nan
     )
 
+    # Require at least two observations in each group
+    if non_pwr_n >= 2 and pwr_n >= 2:
+
+        test_statistic, p_value = ttest_ind(
+            non_pwr_values,
+            pwr_values,
+            equal_var=False,
+            nan_policy="omit"
+        )
+
+    else:
+
+        test_statistic = np.nan
+        p_value = np.nan
 
     test_records.append({
         "metabolite": metabolite,
         "visit": visit,
         "time_months": time_months,
-        "non_pwr_n": non_pwr_n,
-        "pwr_n": pwr_n,
         "non_pwr_mean": non_pwr_mean,
         "pwr_mean": pwr_mean,
         "mean_difference_pwr_minus_nonpwr":
@@ -383,13 +404,10 @@ test_results_df["significant_fdr"] = (
 
 
 
-# ---------- 8. Select significance criterion ----------
+# ---------- 8. Select significance criterion for the plot ----------
 
 # Use raw p-values
 p_column_for_plot = "p_value"
-
-# p_column_for_plot = "p_fdr"
-
 significance_threshold = 0.05
 
 
@@ -491,6 +509,8 @@ for ax, metabolite in zip(
         if sub_group.empty:
             continue
 
+        # When n = 1, SD and SE are NaN.
+        # Use zero-length error bars in those cases.
         plotting_se = (
             sub_group["se_value"]
             .fillna(0)
@@ -510,7 +530,7 @@ for ax, metabolite in zip(
         )
 
 
-    # ---------- Add asterisks ----------
+    # ---------- Add significance asterisks ----------
 
     significant_visits = test_results_df[
         (
@@ -525,7 +545,7 @@ for ax, metabolite in zip(
     ].copy()
 
 
-    # Calculate error bars
+    # Calculate the visible range including error bars
     se_for_position = (
         sub_metabolite["se_value"]
         .fillna(0)
@@ -544,6 +564,24 @@ for ax, metabolite in zip(
     data_lower = lower_values.min()
     data_upper = upper_values.max()
     data_range = data_upper - data_lower
+
+
+    # Prevent invalid spacing if all plotted values are identical
+    if (
+        not np.isfinite(data_range)
+        or data_range == 0
+    ):
+
+        reference_value = abs(data_upper)
+
+        if (
+            not np.isfinite(reference_value)
+            or reference_value == 0
+        ):
+            reference_value = 1.0
+
+        data_range = reference_value * 0.10
+
 
     star_positions = []
 
@@ -582,6 +620,7 @@ for ax, metabolite in zip(
         star_positions.append(star_y)
 
 
+    # Expand y-axis limits to avoid cutting off the stars
     if star_positions:
 
         new_lower_limit = (
