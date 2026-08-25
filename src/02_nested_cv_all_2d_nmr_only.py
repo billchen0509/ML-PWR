@@ -212,7 +212,7 @@ def train_with_cv(df,cv=10,inner_cv = 10,random_state=42):
 
 if __name__ == "__main__":
     input_dir = "../test/result/data/meta+2dnmr"
-    output_dir = "../test/result/model/all2dnmronly"
+    output_dir = "../test/result/data/all2dnmronly"
     os.makedirs(output_dir, exist_ok=True)
 
     all_visit_raw_results = {}

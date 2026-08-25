@@ -3,11 +3,11 @@ import pandas as pd
 
 # 1. Result files for the five input configurations
 result_files = {
-    "Meta + Selected 2D NMR": "../test/result/model/meta+selected2dnmr/model_results_all_visits_meta+selected2dnmr.csv",
-    "Meta + Selected 1D NMR": "../test/result/model/meta+selected1dnmr/model_results_all_visits_meta+selected1dnmr.csv",
-    "Meta + All 2D NMR": "../test/result/model/meta+all2dnmr/model_results_all_visits_meta+all2dnmr.csv",
-    "All 2D NMR Only": "../test/result/model/all2dnmronly/model_results_all_visits_all2dnmronly.csv",
-    "Meta Only": "../test/result/model/metaonly/model_results_all_visits_metaonly.csv",
+    "Meta + Selected 2D NMR": "../test/result/data/meta+2dnmr/model_results_all_visits_selected_features_meta+selected2dnmr.csv",
+    "Meta + Selected 1D NMR": "../test/result/data/meta+1dnmr/model_results_all_visits_selected_features_meta+selected1dnmr.csv",
+    "Meta + All 2D NMR": "../test/result/data/meta+all2dnmr/model_results_all_visits_selected_features_meta+all2dnmr.csv",
+    "All 2D NMR Only": "../test/result/data/all2dnmronly/model_results_all_visits_selected_features_all2dnmronly.csv",
+    "Meta Only": "../test/result/data/metaonly/model_results_all_visits_selected_features_metaonly.csv",
 }
 
 # 2. Read and standardize result tables
@@ -76,7 +76,7 @@ print(
 )
 
 summary_best_by_input.to_csv(
-    "../test/result/model/summary_best_model_by_input_and_visit.csv",
+    "../test/result/data/summary_best_model_by_input_and_visit.csv",
     index=False
 )
 
@@ -96,18 +96,13 @@ print(
 )
 
 overall_best_by_visit.to_csv(
-    "../test/result/model/summary_overall_best_configuration_by_visit.csv",
+    "../test/result/data/summary_overall_best_configuration_by_visit.csv",
     index=False
 )
 
 # 5. Save the fully combined result table
 all_results_combined = pd.concat(all_full_tables, ignore_index=True)
 all_results_combined.to_csv(
-    "../test/result/model/summary_all_results_combined.csv",
+    "../test/result/data/summary_all_results_combined.csv",
     index=False
 )
-
-print("\nSaved files:")
-print("- ../test/result/model/summary_best_model_by_input_and_visit.csv")
-print("- ../test/result/model/summary_overall_best_configuration_by_visit.csv")
-print("- ../test/result/model/summary_all_results_combined.csv")

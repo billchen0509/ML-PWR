@@ -245,7 +245,7 @@ def run_nmr_feature_selection(df, n_start=5, n_end=20, **kwargs):
 
 if __name__ == "__main__":
     input_dir = "../test/result/data/meta+1dnmr"
-    output_dir = "../test/result/model/meta+selected1dnmr"
+    output_dir = "../test/result/data/meta+selected1dnmr"
     os.makedirs(output_dir, exist_ok=True)
 
     visit_dfs = []
@@ -290,7 +290,7 @@ if __name__ == "__main__":
     # Combine all visits
     all_visits_results = pd.concat(visit_dfs, ignore_index=True)
     all_visits_results.to_csv(
-        f"{output_dir}/model_results_all_visits_meta+selected1dnmr.csv",
+        f"{output_dir}/model_results_all_visits_selected_features_meta+selected1dnmr.csv",
         index=False
     )
 
