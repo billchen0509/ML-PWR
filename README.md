@@ -323,4 +323,8 @@ Due to privacy and ethics restrictions, participant-level data are not publicly 
 
 ## Citation
 
-If you use this repository, please cite the associated manuscript when available.
+If you use this repository, please cite the associated manuscript:
+
+Chen, H., Christian, L. M., Greenwood, P., Papaleo, E., & Klein, M. S. (in preparation). Metabolomic models reveal serum glucose depletion and reduced ketogenesis during development of postpartum weight retention.
+
+The citation will be updated upon publication.
