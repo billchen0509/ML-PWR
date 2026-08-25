@@ -3,14 +3,11 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-
 from sklearn.metrics import roc_curve, auc, brier_score_loss
 from sklearn.calibration import calibration_curve
 
-# =========================================================
 # Configuration
-# =========================================================
-INPUT_FILE = "../test/result/model/meta+selected2dnmr/model_results_all_visits_meta+selected2dnmr.csv"
+INPUT_FILE = "../test/result/data/meta+2dnmr/model_results_all_visits_selected_features_meta+selected2dnmr.csv"
 FIGURE_DIR = "../test/result/figure"
 
 PALETTE = [
@@ -34,11 +31,14 @@ SUPPLEMENTAL_TARGETS = [
 ]
 
 VISIT_ORDER = ["V1", "V2", "V3", "V4", "V5"]
+VISIT_LABEL_MAP = {
+    "V1": "Third trimester",
+    "V2": "4-6 weeks\npostpartum",
+    "V3": "4 months\npostpartum",
+    "V4": "8 months\npostpartum",
+    "V5": "12 months\npostpartum"
+}
 
-
-# =========================================================
-# Utilities
-# =========================================================
 def load_results(filename):
     return pd.read_csv(filename)
 
@@ -97,9 +97,7 @@ def get_best_row_for_visit_model(df, visit, model_name):
     return subset.loc[subset["CV ROC AUC"].idxmax()]
 
 
-# =========================================================
-# Figure 1: Best CV ROC AUC per model per visit
-# =========================================================
+# Figure: Best CV ROC AUC per model per visit
 def plot_model_performance_over_visits(df, metric="CV ROC AUC"):
     plot_df = get_best_model_per_visit_per_model(df, metric=metric)
 
@@ -109,10 +107,11 @@ def plot_model_performance_over_visits(df, metric="CV ROC AUC"):
         x="Visit",
         y=metric,
         hue="Model",
+        order=VISIT_ORDER,
         palette=PALETTE,
-        errorbar=None
-    )
-
+        errorbar=None)
+    ax.set_xticks(range(len(VISIT_ORDER)))
+    ax.set_xticklabels([VISIT_LABEL_MAP[v] for v in VISIT_ORDER],rotation=30,ha="right",fontsize=10)
     # Add error bars safely in bar order
     for patch, (_, row) in zip(ax.patches, plot_df.iterrows()):
         x = patch.get_x() + patch.get_width() / 2
@@ -148,9 +147,7 @@ def plot_model_performance_over_visits(df, metric="CV ROC AUC"):
     plt.show()
 
 
-# =========================================================
-# Figure 2: ROC curves of best models across visits
-# =========================================================
+# Figure: ROC curves of best models across visits
 def plot_roc_curves_best_models(df, best_models):
     plt.figure(figsize=(8, 7))
 
@@ -169,7 +166,8 @@ def plot_roc_curves_best_models(df, best_models):
 
         fpr, tpr, _ = roc_curve(y_true, y_prob)
         roc_auc = auc(fpr, tpr)
-        plt.plot(fpr, tpr, label=f"{visit} - {model_name} (AUC = {roc_auc:.3f})")
+        visit_label = VISIT_LABEL_MAP.get(visit, visit)
+        plt.plot(fpr,tpr,label=f"{visit_label.replace(chr(10), ' ')} - {model_name} (AUC = {roc_auc:.3f})")
 
     plt.plot([0, 1], [0, 1], "k--", lw=2)
     plt.xlim([0.0, 1.0])
@@ -217,10 +215,7 @@ def summarize_v1_mlp_calibration(df):
 
     return results_df
 
-
-# =========================================================
-# Figure 3: V1 calibration trade-off comparison
-# =========================================================
+# Figure: V1 calibration trade-off comparison
 def plot_v1_calibration_tradeoff(df, selected_features=20, calibration_features=13):
     y_true_sel, y_prob_sel, auc_sel = get_model_data_by_feature_count(
         df, "V1", "MultiLayer Perceptron", selected_features
@@ -263,7 +258,7 @@ def plot_v1_calibration_tradeoff(df, selected_features=20, calibration_features=
 
     ax1.set_ylabel("Fraction of Positives")
     ax1.set_xlabel("Mean Predicted Probability")
-    ax1.set_title("Visit 1: Calibration Curve Trade-off")
+    ax1.set_title("Third Trimester: Calibration Curve Trade-off")
     ax1.legend(loc="lower right", fontsize=10)
     ax1.grid(True, alpha=0.3)
 
@@ -297,10 +292,7 @@ def plot_v1_calibration_tradeoff(df, selected_features=20, calibration_features=
     plt.savefig(f"{FIGURE_DIR}/V1_Comparison_With_Hist.png", dpi=600, bbox_inches="tight")
     plt.show()
 
-
-# =========================================================
-# Figure 4: Supplemental calibration plots
-# =========================================================
+# Figure: Supplemental calibration plots
 def plot_supplemental_calibration_figures(df, targets):
     for target in targets:
         visit = target["Visit"]
@@ -331,10 +323,10 @@ def plot_supplemental_calibration_figures(df, targets):
             color="#2ca02c",
             label=f"{model_name} ({n_features} features)\nAUC = {auc_value:.3f}, Brier = {brier:.3f}"
         )
-
+        visit_label = VISIT_LABEL_MAP.get(visit, visit).replace("\n", " ")
         ax1.set_ylabel("Fraction of Positives")
         ax1.set_xlabel("Mean Predicted Probability")
-        ax1.set_title(f"Calibration Curve for {visit}")
+        ax1.set_title(f"Calibration Curve for {visit_label}")
         ax1.legend(loc="lower right")
         ax1.grid(True, alpha=0.3)
 
@@ -369,10 +361,6 @@ def plot_supplemental_calibration_figures(df, targets):
 
         print(f"Generated: {output_file}")
 
-
-# =========================================================
-# Main
-# =========================================================
 if __name__ == "__main__":
     df = load_results(INPUT_FILE)
 
