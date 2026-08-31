@@ -248,7 +248,7 @@ def run_nmr_feature_selection(df, n_start=5, n_end=20, **kwargs):
 
 if __name__ == "__main__":
     input_dir = "../test/result/data/meta+2dnmr"
-    output_dir = "../test/result/data/meta+selected2dnmr"
+    output_dir = "../test/result/data/meta+2dnmr"
     os.makedirs(output_dir, exist_ok=True)
 
     visit_dfs = []
