@@ -277,9 +277,9 @@ xlsxwriter
 
 Before running the pipeline, prepare:
 
-1. **Private source metadata files** (required by `01_process_data_merged.py` and `10_Table1.py`) in the sibling directory `../Matthias Klein's files - GWG/`.
-2. **External manuscript metabolite tables** (required by `09_Line_plots_1D.py` and `09_Line_plots_2D.py`) in sibling directory `../result/`.
-3. **Deployment test splits** in `test/result/data/deploy/V{1..4}_test.csv` before running prediction steps in `06_deployment.py`.
+1. **Private source metadata files** Request from the corresponding author.
+2. **External manuscript metabolite tables**  Request from the corresponding author.
+3. **Deployment test splits**  Request from the corresponding author.
 
 ### Recommended execution order
 
@@ -296,9 +296,6 @@ Core dependency order:
 9. `09_Line_plots_*.py`
 10. `10_Table1.py`
 11. `11_prediction_heatmap.py`
-
-The following scripts now resolve key IO paths from their own file location (`Path(__file__)`), so they can be launched from any working directory: `03_summary_results.py`, `04_visualization_2dvs1d.py`, `05_meta_association.py`, `06_deployment.py`, `07_deployment_summary.py`, `08_best_performing_1D_2D_models.py`, `09_Line_plots_1D.py`, `09_Line_plots_2D.py`, `10_Table1.py`, `11_prediction_heatmap.py`.  
-The earlier preprocessing/modeling scripts still use historical relative paths, so a safe default remains running from `src/`:
 
 ```bash
 cd src
