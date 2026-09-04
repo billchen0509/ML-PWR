@@ -1,10 +1,17 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+RESULT_DATA_DIR = REPO_ROOT / "test" / "result" / "data"
+FIGURE_DIR = REPO_ROOT / "test" / "result" / "figure"
+FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
 # ---------- 1. Load the files ----------
-df_2d = pd.read_csv("../test/result/data/meta+2dnmr/model_results_all_visits_selected_features_meta+selected2dnmr.csv")
-df_1d = pd.read_csv("../test/result/data/meta+1dnmr/model_results_all_visits_selected_features_meta+selected1dnmr.csv")
+df_2d = pd.read_csv(RESULT_DATA_DIR / "meta+2dnmr" / "model_results_all_visits_selected_features_meta+selected2dnmr.csv")
+df_1d = pd.read_csv(RESULT_DATA_DIR / "meta+1dnmr" / "model_results_all_visits_selected_features_meta+selected1dnmr.csv")
 visit_label_map = {
     "V1": "Third trimester",
     "V2": "4-6 weeks\npostpartum",
@@ -78,5 +85,5 @@ fig.legend(handles, labels, title="Data Type", loc="upper right")
 fig.suptitle("Best CV ROC AUC per Model (1D vs 2D) across Visits",
              fontsize=14, y=1.02)
 plt.tight_layout()
-plt.savefig("../test/result/figure/best_model_comparison_1d_vs_2d.png", dpi=600, bbox_inches='tight')
+plt.savefig(FIGURE_DIR / "best_model_comparison_1d_vs_2d.png", dpi=600, bbox_inches='tight')
 plt.show()

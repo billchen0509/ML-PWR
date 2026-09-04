@@ -5,12 +5,16 @@ from scipy.stats import mannwhitneyu, chi2_contingency, fisher_exact
 from statsmodels.stats.multitest import multipletests
 
 # Input files: full filtered data
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+RESULT_DIR = REPO_ROOT / "test" / "result"
+
 files = [
-    "../test/result/data/meta+2dnmr/DF1_filtered_2d.csv",
-    "../test/result/data/meta+2dnmr/DF2_filtered_2d.csv",
-    "../test/result/data/meta+2dnmr/DF3_filtered_2d.csv",
-    "../test/result/data/meta+2dnmr/DF4_filtered_2d.csv",
-    "../test/result/data/meta+2dnmr/DF5_filtered_2d.csv",
+    RESULT_DIR / "data" / "meta+2dnmr" / "DF1_filtered_2d.csv",
+    RESULT_DIR / "data" / "meta+2dnmr" / "DF2_filtered_2d.csv",
+    RESULT_DIR / "data" / "meta+2dnmr" / "DF3_filtered_2d.csv",
+    RESULT_DIR / "data" / "meta+2dnmr" / "DF4_filtered_2d.csv",
+    RESULT_DIR / "data" / "meta+2dnmr" / "DF5_filtered_2d.csv",
 ]
 
 # Outcome
@@ -24,7 +28,7 @@ categorical_cols = ['vig_activity', 'race_1', 'race_2', 'caffeine', 'smoke_curre
 meta_cols = ["visit", outcome] + continuous_cols + categorical_cols
 
 # Output paths
-out_dir = Path("../test/result/meta")
+out_dir = RESULT_DIR / "meta"
 out_dir.mkdir(parents=True, exist_ok=True)
 
 out_global = out_dir / "pwr_meta_global_tests.csv"
@@ -35,6 +39,8 @@ out_visit_sig = out_dir / "pwr_meta_by_visit_significant_only.csv"
 # Load full data and keep only metadata part
 dfs = []
 for f in files:
+    if not f.exists():
+        raise FileNotFoundError(f"Missing input file: {f}")
     df = pd.read_csv(f)
     df = df[meta_cols].copy()
     dfs.append(df)

@@ -1,18 +1,22 @@
-import os
 import pandas as pd
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+RESULT_DATA_DIR = REPO_ROOT / "test" / "result" / "data"
 
 # Results files of 5 configurations
 result_files = {
-    "Meta + Selected 2D NMR": "../test/result/data/meta+2dnmr/model_results_all_visits_selected_features_meta+selected2dnmr.csv",
-    "Meta + Selected 1D NMR": "../test/result/data/meta+1dnmr/model_results_all_visits_selected_features_meta+selected1dnmr.csv",
-    "Meta + All 2D NMR": "../test/result/data/meta+all2dnmr/model_results_all_visits_selected_features_meta+all2dnmr.csv",
-    "All 2D NMR Only": "../test/result/data/all2dnmronly/model_results_all_visits_selected_features_all2dnmronly.csv",
-    "Meta Only": "../test/result/data/metaonly/model_results_all_visits_selected_features_metaonly.csv",
+    "Meta + Selected 2D NMR": RESULT_DATA_DIR / "meta+2dnmr" / "model_results_all_visits_selected_features_meta+selected2dnmr.csv",
+    "Meta + Selected 1D NMR": RESULT_DATA_DIR / "meta+1dnmr" / "model_results_all_visits_selected_features_meta+selected1dnmr.csv",
+    "Meta + All 2D NMR": RESULT_DATA_DIR / "meta+all2dnmr" / "model_results_all_visits_selected_features_meta+all2dnmr.csv",
+    "All 2D NMR Only": RESULT_DATA_DIR / "all2dnmronly" / "model_results_all_visits_selected_features_all2dnmronly.csv",
+    "Meta Only": RESULT_DATA_DIR / "metaonly" / "model_results_all_visits_selected_features_metaonly.csv",
 }
 
 # Output
-output_dir = "../test/result/data"
-os.makedirs(output_dir, exist_ok=True)
+output_dir = RESULT_DATA_DIR
+output_dir.mkdir(parents=True, exist_ok=True)
 
 def standardize_result_columns(df, input_name, file_path):
     """
@@ -128,7 +132,7 @@ for input_name, file_path in result_files.items():
     # Check file existence
     # --------------------------------------------------------
 
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         print(f"[WARNING] File not found: {file_path}")
         continue
 
@@ -254,10 +258,7 @@ summary_best_by_input = reorder_columns(
     preferred_columns
 )
 
-best_by_input_path = os.path.join(
-    output_dir,
-    "summary_best_model_by_input_and_visit.csv"
-)
+best_by_input_path = output_dir / "summary_best_model_by_input_and_visit.csv"
 
 summary_best_by_input.to_csv(
     best_by_input_path,
@@ -289,10 +290,7 @@ overall_best_by_visit = reorder_columns(
     overall_best_by_visit,
     preferred_columns
 )
-overall_best_path = os.path.join(
-    output_dir,
-    "summary_overall_best_configuration_by_visit.csv"
-)
+overall_best_path = output_dir / "summary_overall_best_configuration_by_visit.csv"
 
 overall_best_by_visit.to_csv(
     overall_best_path,
@@ -326,10 +324,7 @@ all_results_combined = reorder_columns(
     all_results_combined,
     preferred_columns
 )
-combined_path = os.path.join(
-    output_dir,
-    "summary_all_results_combined.csv"
-)
+combined_path = output_dir / "summary_all_results_combined.csv"
 
 all_results_combined.to_csv(
     combined_path,
