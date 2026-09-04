@@ -1,4 +1,4 @@
-# Metabolomic models reveal serum glucose depletion and reduced ketogenesis during development of Postpartum Weight Retention
+# Serum Glucose Depletion and Reduced Ketogenesis in Postpartum Weight Retention Revealed by Machine Learning Metabolomics Analysis
 
 **Authors:** Hongjin Chen, Lisa M. Christian, Peyton Greenwood, Elena Papaleo, Matthias S. Klein
 
