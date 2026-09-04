@@ -59,7 +59,7 @@ project/
 │   ├── 05_meta_association.py
 │   ├── 06_deployment.py
 │   ├── 07_deployment_summary.py
-│   ├── 08_best-performing_1D&2D_models.py
+│   ├── 08_best_performing_1D_2D_models.py
 │   ├── 09_Line_plots_1D.py
 │   ├── 09_Line_plots_2D.py
 │   ├── 09_Line_plots_combined.py
@@ -191,7 +191,7 @@ The current prediction workflow generates held-out prediction files for V1–V4 
 
 ### 9. Best-performing 1D vs 2D models
 
-`08_best-performing_1D&2D_models.py` identifies the highest-performing selected 1D and selected 2D model at each visit and generates a side-by-side comparison of CV ROC AUC values with standard-error bars.
+`08_best_performing_1D_2D_models.py` identifies the highest-performing selected 1D and selected 2D model at each visit and generates a side-by-side comparison of CV ROC AUC values with standard-error bars.
 
 ### 10. Longitudinal metabolite analysis
 
@@ -209,6 +209,11 @@ Available scripts include:
 
 The combined manuscript-focused plot includes seven selected 2D metabolites and seven selected 1D metabolites.
 
+`09_Line_plots_1D.py` and `09_Line_plots_2D.py` read manuscript metabolite tables from an external/private sibling directory:
+
+- `../result/1D_data/nmr_only/DF*_nmr_only_annotated_1d.csv`
+- `../result/data/nmr_only/DF*_nmr_only_annotated_2d.csv`
+
 ### 11. Participant characteristics and Table 1
 
 `10_Table1.py` generates the manuscript participant-characteristics tables comparing PWR and non-PWR groups.
@@ -220,6 +225,11 @@ Outputs include:
 - an Excel workbook containing both tables and analysis notes.
 
 The analysis includes continuous and categorical group comparisons and Benjamini–Hochberg FDR correction across the valid tests in Tables 1a and 1b.
+
+`10_Table1.py` requires private source Excel files in:
+
+- `../Matthias Klein's files - GWG/OB70 SHIPP3 SELECTED_marked.xlsx`
+- `../Matthias Klein's files - GWG/OB70 SHIPP3 SMALL DATASET-BMI.xlsx`
 
 Vigorous physical activity is additionally converted to an estimated numeric frequency per month for the group comparison:
 
@@ -263,7 +273,32 @@ xlsxwriter
 
 ## Usage
 
-The scripts currently use relative paths that are written with the `src/` directory as the working directory. A typical workflow is therefore:
+### Data and directory requirements
+
+Before running the pipeline, prepare:
+
+1. **Private source metadata files** (required by `01_process_data_merged.py` and `10_Table1.py`) in the sibling directory `../Matthias Klein's files - GWG/`.
+2. **External manuscript metabolite tables** (required by `09_Line_plots_1D.py` and `09_Line_plots_2D.py`) in sibling directory `../result/`.
+3. **Deployment test splits** in `test/result/data/deploy/V{1..4}_test.csv` before running prediction steps in `06_deployment.py`.
+
+### Recommended execution order
+
+Core dependency order:
+
+1. `01_process_data_merged.py`
+2. all `02_nested_cv_*.py` scripts
+3. `03_summary_results.py`
+4. `04_visualization_*.py`
+5. `05_meta_association.py`
+6. `06_deployment.py`
+7. `07_deployment_summary.py`
+8. `08_best_performing_1D_2D_models.py`
+9. `09_Line_plots_*.py`
+10. `10_Table1.py`
+11. `11_prediction_heatmap.py`
+
+The following scripts now resolve key IO paths from their own file location (`Path(__file__)`), so they can be launched from any working directory: `03_summary_results.py`, `04_visualization_2dvs1d.py`, `05_meta_association.py`, `06_deployment.py`, `07_deployment_summary.py`, `08_best_performing_1D_2D_models.py`, `09_Line_plots_1D.py`, `09_Line_plots_2D.py`, `10_Table1.py`, `11_prediction_heatmap.py`.  
+The earlier preprocessing/modeling scripts still use historical relative paths, so a safe default remains running from `src/`:
 
 ```bash
 cd src
@@ -287,7 +322,7 @@ python 05_meta_association.py
 python 06_deployment.py
 python 07_deployment_summary.py
 
-python "08_best-performing_1D&2D_models.py"
+python 08_best_performing_1D_2D_models.py
 
 python 09_Line_plots_1D.py
 python 09_Line_plots_2D.py
@@ -297,7 +332,7 @@ python 10_Table1.py
 python 11_prediction_heatmap.py
 ```
 
-Some scripts rely on source datasets stored outside the public repository. Local file paths may therefore need to be adjusted before execution.
+`07_deployment_summary.py` currently merges prediction files for **V1–V4** (matching the current deployment prediction outputs).
 
 ## Key Outputs
 

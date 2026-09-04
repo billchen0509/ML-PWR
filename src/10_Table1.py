@@ -4,17 +4,34 @@ from scipy import stats
 from statsmodels.stats.multitest import multipletests
 from pathlib import Path
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+PRIVATE_SOURCE_DIR = REPO_ROOT.parent / "Matthias Klein's files - GWG"
+RESULT_DATA_DIR = REPO_ROOT / "test" / "result" / "data"
+
 # Input
-INPUT = Path("../../Matthias Klein's files - GWG/OB70 SHIPP3 SELECTED_marked.xlsx")
-BMI_INPUT = Path("../../Matthias Klein's files - GWG/OB70 SHIPP3 SMALL DATASET-BMI.xlsx")
+INPUT = PRIVATE_SOURCE_DIR / "OB70 SHIPP3 SELECTED_marked.xlsx"
+BMI_INPUT = PRIVATE_SOURCE_DIR / "OB70 SHIPP3 SMALL DATASET-BMI.xlsx"
 # Output
-OUT_XLSX = Path('../test/result/data/Table1_PWR_nonPWR_recalculated.xlsx')
-OUT_CSV_1A = Path('../test/result/data/Table1a_overall_PWR_nonPWR.csv')
-OUT_CSV_1B = Path('../test/result/data/Table1b_timepoints_PWR_nonPWR.csv')
+OUT_XLSX = RESULT_DATA_DIR / "Table1_PWR_nonPWR_recalculated.xlsx"
+OUT_CSV_1A = RESULT_DATA_DIR / "Table1a_overall_PWR_nonPWR.csv"
+OUT_CSV_1B = RESULT_DATA_DIR / "Table1b_timepoints_PWR_nonPWR.csv"
+RESULT_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 # -------------------------
 # Load and clean data
 # -------------------------
+if not INPUT.exists():
+    raise FileNotFoundError(
+        f"Missing private source file: {INPUT}. "
+        "Place the private source Excel files under ../Matthias Klein's files - GWG/ relative to the repository root."
+    )
+if not BMI_INPUT.exists():
+    raise FileNotFoundError(
+        f"Missing private source file: {BMI_INPUT}. "
+        "Place the private source Excel files under ../Matthias Klein's files - GWG/ relative to the repository root."
+    )
+
 raw_df = pd.read_excel(INPUT)
 meta_df = raw_df.dropna(subset=['pwr_current']).copy()
 meta_df.drop(columns=[c for c in ['pwr_any','pwr_first','pp_weight_loss1','pp_weight_loss2','pp_weight_loss3'] if c in meta_df.columns], inplace=True)

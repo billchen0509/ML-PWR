@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+FIGURE_DIR = REPO_ROOT / "test" / "result" / "figure"
+FIGURE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Data
 data = {
@@ -100,5 +106,5 @@ colorbar = fig.colorbar(heatmap, ax=ax)
 colorbar.set_label("Predicted probability")
 
 plt.tight_layout()
-plt.savefig("../test/result/figure/participant_probability_heatmap.png",dpi=600,bbox_inches="tight")
+plt.savefig(FIGURE_DIR / "participant_probability_heatmap.png", dpi=600, bbox_inches="tight")
 plt.show()

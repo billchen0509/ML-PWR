@@ -1,9 +1,15 @@
 import pandas as pd
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+PREDICTION_DIR = REPO_ROOT / "test" / "result" / "deploy" / "prediction"
+
 files = [
-    "../test/result/deploy/prediction/V1_MultiLayerPerceptron_N20_predictions.csv",
-    "../test/result/deploy/prediction/V2_MultiLayerPerceptron_N10_predictions.csv",
-    "../test/result/deploy/prediction/V3_LogisticRegression_N5_predictions.csv",
-    "../test/result/deploy/prediction/V4_RandomForest_N15_predictions.csv",
+    PREDICTION_DIR / "V1_MultiLayerPerceptron_N20_predictions.csv",
+    PREDICTION_DIR / "V2_MultiLayerPerceptron_N10_predictions.csv",
+    PREDICTION_DIR / "V3_LogisticRegression_N5_predictions.csv",
+    PREDICTION_DIR / "V4_RandomForest_N15_predictions.csv",
 ]
 
 visit_columns = ["V1", "V2", "V3", "V4"]
@@ -28,7 +34,9 @@ def load_visit(file, visit_name):
 # Build the combined DataFrame
 wide = None
 for file, visit in zip(files, visit_columns):
+    if not file.exists():
+        raise FileNotFoundError(f"Missing prediction file: {file}")
     visit_df = load_visit(file, visit)
     wide = visit_df if wide is None else pd.merge(wide, visit_df, on="participant_id", how="outer")
 
-wide.to_csv("../test/result/deploy/prediction/combined_visit_predictions.csv", index=False)
+wide.to_csv(PREDICTION_DIR / "combined_visit_predictions.csv", index=False)

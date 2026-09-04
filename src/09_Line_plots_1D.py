@@ -11,15 +11,18 @@ from pathlib import Path
 from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
 
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+EXTERNAL_RESULT_DIR = REPO_ROOT.parent / "result"
 
 # ---------- 1. File paths and visit information ----------
 
 files = [
-    "../../result/1D_data/nmr_only/DF1_nmr_only_annotated_1d.csv",
-    "../../result/1D_data/nmr_only/DF2_nmr_only_annotated_1d.csv",
-    "../../result/1D_data/nmr_only/DF3_nmr_only_annotated_1d.csv",
-    "../../result/1D_data/nmr_only/DF4_nmr_only_annotated_1d.csv",
-    "../../result/1D_data/nmr_only/DF5_nmr_only_annotated_1d.csv"
+    EXTERNAL_RESULT_DIR / "1D_data" / "nmr_only" / "DF1_nmr_only_annotated_1d.csv",
+    EXTERNAL_RESULT_DIR / "1D_data" / "nmr_only" / "DF2_nmr_only_annotated_1d.csv",
+    EXTERNAL_RESULT_DIR / "1D_data" / "nmr_only" / "DF3_nmr_only_annotated_1d.csv",
+    EXTERNAL_RESULT_DIR / "1D_data" / "nmr_only" / "DF4_nmr_only_annotated_1d.csv",
+    EXTERNAL_RESULT_DIR / "1D_data" / "nmr_only" / "DF5_nmr_only_annotated_1d.csv",
 ]
 
 visit_order = ["V1", "V2", "V3", "V4", "V5"]
@@ -51,7 +54,7 @@ visit_time_months = {
 
 
 # Create output directory
-output_dir = Path("../test/result/figure")
+output_dir = REPO_ROOT / "test" / "result" / "figure"
 output_dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -60,6 +63,11 @@ output_dir.mkdir(parents=True, exist_ok=True)
 dfs = []
 
 for visit, file_path in zip(visit_order, files):
+    if not file_path.exists():
+        raise FileNotFoundError(
+            f"Missing input file: {file_path}. "
+            "These 1D nmr_only files are expected in an external private 'result' directory."
+        )
 
     df = pd.read_csv(file_path)
 

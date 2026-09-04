@@ -1,8 +1,8 @@
-import os
 import json
 import joblib
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 from scipy.stats import ttest_ind
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -23,7 +23,12 @@ EXPLICIT_COLS = ['caffeine', 'smoke_current', 'ppg_BMI', 'first_BMI']
 META_COLS = ONE_HOT_COLS + BINARY_COLS + CONTINUOUS_COLS + EXPLICIT_COLS
 NON_FEATURE_COLS = ['participant_id', 'visit', 'pwr_current']
 
-BASE_DIR = "../test/result/deploy"
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parent
+RESULT_DIR = REPO_ROOT / "test" / "result"
+BASE_DIR = RESULT_DIR / "deploy"
+TRAIN_DATA_DIR = RESULT_DIR / "data" / "meta+2dnmr"
+DEPLOY_TEST_DATA_DIR = RESULT_DIR / "data" / "deploy"
 
 DEPLOYMENT_PLAN = {
     1: {"MultiLayer Perceptron": 20},
@@ -103,15 +108,16 @@ def final_tune_and_refit(df, model_name, estimator, param_grid, top_n, outdir,
     )
     gs.fit(X, y)
 
-    os.makedirs(outdir, exist_ok=True)
+    outdir = Path(outdir)
+    outdir.mkdir(parents=True, exist_ok=True)
 
-    model_path = os.path.join(outdir, f"{model_name}_N{top_n}_final_model.pkl")
-    params_path = os.path.join(outdir, f"{model_name}_N{top_n}_best_params.json")
-    selected_nmr_path = os.path.join(outdir, f"{model_name}_N{top_n}_selected_nmr.json")
+    model_path = outdir / f"{model_name}_N{top_n}_final_model.pkl"
+    params_path = outdir / f"{model_name}_N{top_n}_best_params.json"
+    selected_nmr_path = outdir / f"{model_name}_N{top_n}_selected_nmr.json"
 
     joblib.dump(gs.best_estimator_, model_path)
 
-    with open(params_path, "w") as f:
+    with params_path.open("w") as f:
         json.dump(gs.best_params_, f, indent=2)
 
     nmr_selected = (
@@ -122,7 +128,7 @@ def final_tune_and_refit(df, model_name, estimator, param_grid, top_n, outdir,
         .selected_cols_
     )
 
-    with open(selected_nmr_path, "w") as f:
+    with selected_nmr_path.open("w") as f:
         json.dump(nmr_selected, f, indent=2)
 
     return {
@@ -185,8 +191,11 @@ def run_training():
 
     for visit in range(1, 6):
         print(f"[Deployment] Visit {visit}")
-        df = pd.read_csv(f"../test/result/data/meta+2dnmr/DF{visit}_filtered_2d.csv")
-        outdir = f"../test/result/deploy/V{visit}"
+        train_file = TRAIN_DATA_DIR / f"DF{visit}_filtered_2d.csv"
+        if not train_file.exists():
+            raise FileNotFoundError(f"Missing training input file: {train_file}")
+        df = pd.read_csv(train_file)
+        outdir = BASE_DIR / f"V{visit}"
 
         for model_name, top_n in DEPLOYMENT_PLAN.get(visit, {}).items():
             info = final_tune_and_refit(
@@ -206,7 +215,7 @@ def run_training():
 
 # Prediction utilities
 def load_final_pipeline(base_dir, visit, model_name, top_n):
-    path = os.path.join(base_dir, f"V{visit}", f"{model_name}_N{top_n}_final_model.pkl")
+    path = Path(base_dir) / f"V{visit}" / f"{model_name}_N{top_n}_final_model.pkl"
     pipe = joblib.load(path)
     return pipe
 
@@ -224,11 +233,17 @@ def predict_with_threshold(pipe, X, threshold=0.5):
 
 
 def run_prediction():
-    prediction_outdir = "../test/result/deploy/prediction"
-    os.makedirs(prediction_outdir, exist_ok=True)
+    prediction_outdir = BASE_DIR / "prediction"
+    prediction_outdir.mkdir(parents=True, exist_ok=True)
 
     for visit in range(1, 5):
-        test_df = pd.read_csv(f"../test/result/data/deploy/V{visit}_test.csv")
+        test_file = DEPLOY_TEST_DATA_DIR / f"V{visit}_test.csv"
+        if not test_file.exists():
+            raise FileNotFoundError(
+                f"Missing deployment test dataset: {test_file}. "
+                "Prepare the private deploy test data before running predictions."
+            )
+        test_df = pd.read_csv(test_file)
         model_name, top_n = PREDICTION_PLAN[visit]
 
         pipe = load_final_pipeline(BASE_DIR, visit, model_name, top_n)
@@ -243,10 +258,7 @@ def run_prediction():
         print(out[["participant_id", "pred_proba", "pred_label"]])
 
         out_df = out[["participant_id", "pred_proba", "pred_label"]]
-        out_path = os.path.join(
-            prediction_outdir,
-            f"V{visit}_{model_name.replace(' ', '')}_N{top_n}_predictions.csv"
-        )
+        out_path = prediction_outdir / f"V{visit}_{model_name.replace(' ', '')}_N{top_n}_predictions.csv"
         out_df.to_csv(out_path, index=False)
 
 if __name__ == "__main__":
